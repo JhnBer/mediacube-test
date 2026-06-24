@@ -13,3 +13,9 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
+## Структура
+
+- Для ролей [UserRole](app/Enums/UserRole.php) enum + policy, так как роли и права базовые. 
+Для сложных, скорее всего, взял бы spatie laravel-permission.
+
+
