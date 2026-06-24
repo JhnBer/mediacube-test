@@ -52,6 +52,14 @@ services:
     networks:
       - mediacube-test
 
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+        - "1025:1025"
+        - "8025:8025"
+    networks:
+      - mediacube-test
+
 volumes:
   postgres_data:
   redis_data:
