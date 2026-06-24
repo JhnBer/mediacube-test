@@ -7,6 +7,7 @@ use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
 class AuthControllerTest extends TestCase
@@ -66,5 +67,37 @@ class AuthControllerTest extends TestCase
             ->assertStatus(200);
 
         $this->assertGuest();
+    }
+
+    public function test_user_can_verify_email(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        $this->get($verificationUrl)->assertRedirect();
+
+        $this->assertNotNull($user->refresh()->email_verified_at);
+    }
+
+    public function test_user_cannot_varify_email_with_wrong_link(): void
+    {
+        $user = User::factory()->unverified()->create();
+
+        $verificationUrl = URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addMinutes(60),
+            ['id' => $user->id, 'hash' => sha1($user->email)]
+        );
+
+        $wrongUrl = str($verificationUrl)->replace('signature=', 'signature=wrongprefix');
+
+        $this->get($wrongUrl)->assertClientError();
+
+        $this->assertNull($user->refresh()->email_verified_at);
     }
 }
