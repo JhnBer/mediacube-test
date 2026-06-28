@@ -47,14 +47,6 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Post $post)
-    {
-        // Not used in API context, but we keep the stub.
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(UpdatePostRequest $request, Post $post)
