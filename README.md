@@ -86,7 +86,7 @@ docker compose exec -it app ./run.sh
 Поднимать proxy сервер тоже показалось избыточным. Гонял через postman.
 
 ###
-Команды отдельно чё-то погонять
+Команды отдельно чё-то погонять (хотя всё есть в run.sh)
 
 
 Зависимости
@@ -97,6 +97,16 @@ docker compose exec -it app composer i
 Миграции
 ```shell
 docker compose exec -it app php artisan migrate
+```
+
+Миграции с индексами
+```shell
+docker compose exec -it app php artisan migrate --path=database/migrations/indexes --force
+```
+
+И обрвтно)
+```shell
+docker compose exec -it app php artisan migrate:rollback --path=database/migrations/indexes --force
 ```
 
 Сид бд
