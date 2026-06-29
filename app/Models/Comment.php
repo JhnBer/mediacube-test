@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Database\Factories\CommentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Cache;
 #[Fillable(['body', 'post_id', 'author_id'])]
 class Comment extends Model
 {
-    /** @use HasFactory<\Database\Factories\CommentFactory> */
+    /** @use HasFactory<CommentFactory> */
     use HasFactory;
 
     protected static function booted(): void

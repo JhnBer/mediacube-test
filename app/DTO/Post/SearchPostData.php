@@ -13,7 +13,7 @@ class SearchPostData extends Data
         public readonly ?PostStatus $status,
         public readonly ?Carbon $from,
         public readonly ?Carbon $to,
-    ) {}
-
+    ) {
+    }
 
 }

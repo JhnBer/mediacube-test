@@ -28,9 +28,9 @@ class SearchPostRequest extends FormRequest
     {
         return [
             'q' => 'required|string|min:3',
-            'status'             => ['sometimes', 'string', Rule::enum(PostStatus::class)],
-            'published_at.from'  => 'sometimes|date',
-            'published_at.to'    => 'sometimes|date|after_or_equal:published_at.from',
+            'status' => ['sometimes', 'string', Rule::enum(PostStatus::class)],
+            'published_at.from' => 'sometimes|date',
+            'published_at.to' => 'sometimes|date|after_or_equal:published_at.from',
         ];
     }
 

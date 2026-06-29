@@ -10,7 +10,6 @@ class IndexPostData extends Data
         public readonly string $sort = 'published_at',
         public readonly string $direction = 'desc',
         public readonly int $per_page = 15,
-    )
-    {
+    ) {
     }
 }

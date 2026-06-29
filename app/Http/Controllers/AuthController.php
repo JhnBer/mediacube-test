@@ -25,15 +25,15 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): JsonResponse
     {
-        if (!auth()->attempt($request->only('email', 'password'))) {
+        if (! auth()->attempt($request->only('email', 'password'))) {
             return response()->json([
-                'message' => 'These credentials do not match our records.'
+                'message' => 'These credentials do not match our records.',
             ], Response::HTTP_UNAUTHORIZED);
         }
 
-        if (!$request->user()->hasVerifiedEmail()) {
+        if (! $request->user()->hasVerifiedEmail()) {
             return response()->json([
-                'message' => 'Your email is not verified.'
+                'message' => 'Your email is not verified.',
             ], Response::HTTP_FORBIDDEN);
         }
 
@@ -51,7 +51,7 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'You have successfully logged out.'
+            'message' => 'You have successfully logged out.',
         ]);
     }
 }

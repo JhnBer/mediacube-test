@@ -24,8 +24,6 @@ class UnauthorizedEmailVerificationRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
     public function rules(): array
     {
@@ -36,8 +34,6 @@ class UnauthorizedEmailVerificationRequest extends FormRequest
 
     /**
      * Fulfill the email verification request.
-     *
-     * @return void
      */
     public function fulfill(): void
     {
@@ -50,9 +46,6 @@ class UnauthorizedEmailVerificationRequest extends FormRequest
 
     /**
      * Configure the validator instance.
-     *
-     * @param  \Illuminate\Validation\Validator  $validator
-     * @return \Illuminate\Validation\Validator
      */
     public function withValidator(Validator $validator): Validator
     {

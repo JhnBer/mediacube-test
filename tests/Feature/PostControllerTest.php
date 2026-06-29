@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\PostController;
+use App\Http\Requests\Post\StorePostRequest;
+use App\Http\Requests\Post\UpdatePostRequest;
 use App\Models\Post;
 use App\Models\User;
 use Carbon\Carbon;
@@ -15,9 +17,11 @@ use Tests\TestCase;
 
 class PostControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase;
+    use WithFaker;
 
     private User $viewer;
+
     private User $author;
 
     protected function setUp(): void
@@ -180,7 +184,7 @@ class PostControllerTest extends TestCase
             'body' => 'Body text.',
         ];
 
-        $storeRequest = \Mockery::mock(\App\Http\Requests\Post\StorePostRequest::class);
+        $storeRequest = \Mockery::mock(StorePostRequest::class);
         $storeRequest->shouldReceive('validated')
             ->once()
             ->andReturn($postDataForStore);
@@ -198,7 +202,7 @@ class PostControllerTest extends TestCase
         }
 
         Sanctum::actingAs($this->author);
-        $updateRequest = \Mockery::mock(\App\Http\Requests\Post\UpdatePostRequest::class);
+        $updateRequest = \Mockery::mock(UpdatePostRequest::class);
         $updateRequest->shouldReceive('validated')
             ->once()
             ->andReturn([
@@ -207,7 +211,6 @@ class PostControllerTest extends TestCase
 
         $updateRequest->shouldReceive('user')
             ->andReturn($this->author);
-
 
         try {
             app(PostController::class)->update($updateRequest, $postForUpdate);
@@ -232,9 +235,9 @@ class PostControllerTest extends TestCase
 
         $response = $this->getJson('/api/posts/search?q=Laravel')
             ->assertOk()
-            ->assertJsonCount(2);
+            ->assertJsonCount(2, 'data');
 
-        $titles = collect($response->json())->pluck('title');
+        $titles = collect($response->json('data'))->pluck('title');
         $this->assertContains('Laravel for beginners guide', $titles);
         $this->assertContains('Advanced Laravel techniques', $titles);
     }
@@ -252,8 +255,8 @@ class PostControllerTest extends TestCase
 
         $this->getJson('/api/posts/search?q=PostgreSQL')
             ->assertOk()
-            ->assertJsonCount(1)
-            ->assertJsonPath('0.title', 'First post');
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.title', 'First post');
     }
 
     public function test_search_is_case_insensitive(): void
@@ -262,11 +265,11 @@ class PostControllerTest extends TestCase
 
         $this->getJson('/api/posts/search?q=welcome')
             ->assertOk()
-            ->assertJsonCount(1);
+            ->assertJsonCount(1, 'data');
 
         $this->getJson('/api/posts/search?q=BLOG')
             ->assertOk()
-            ->assertJsonCount(1);
+            ->assertJsonCount(1, 'data');
 
         $this->getJson('/api/posts/search?q=WELCOME+TO+THE')
             ->assertOk()
@@ -284,13 +287,13 @@ class PostControllerTest extends TestCase
 
         $this->getJson('/api/posts/search?q=article&status=published')
             ->assertOk()
-            ->assertJsonCount(1)
-            ->assertJsonPath('0.title', 'Published article');
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.title', 'Published article');
 
         $this->getJson('/api/posts/search?q=article&status=draft')
             ->assertOk()
-            ->assertJsonCount(1)
-            ->assertJsonPath('0.title', 'Draft article');
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.title', 'Draft article');
     }
 
     public function test_search_filters_by_date_range(): void
@@ -319,7 +322,7 @@ class PostControllerTest extends TestCase
         $response = $this->getJson('/api/posts/search?q=post&published_at[from]=2026-06-01&published_at[to]=2026-06-15')
             ->assertOk()
             ->assertJsonCount(1)
-            ->assertJsonPath('0.title', 'Middle post');
+            ->assertJsonPath('data.0.title', 'Middle post');
     }
 
     public function test_search_returns_empty_when_no_match(): void
@@ -328,7 +331,7 @@ class PostControllerTest extends TestCase
 
         $this->getJson('/api/posts/search?q=nonexistent')
             ->assertOk()
-            ->assertJsonCount(0);
+            ->assertJsonCount(0, 'data');
     }
 
     public function test_search_returns_author_with_each_post(): void
@@ -340,9 +343,9 @@ class PostControllerTest extends TestCase
 
         $this->getJson('/api/posts/search?q=John')
             ->assertOk()
-            ->assertJsonCount(1)
-            ->assertJsonPath('0.author.name', 'John Doe')
-            ->assertJsonPath('0.author.email', 'john@example.com');
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.author.name', 'John Doe')
+            ->assertJsonPath('data.0.author.email', 'john@example.com');
     }
 
     public function test_search_validates_min_query_length(): void

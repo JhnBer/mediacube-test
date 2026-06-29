@@ -15,23 +15,28 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PostController extends Controller
 {
-    public function __construct(protected PostService $postService) {}
+    public function __construct(protected PostService $postService)
+    {
+    }
 
     public function index(IndexPostRequest $request): JsonResponse
     {
         $dto = $request->getDto();
+
         return response()->json($this->postService->getPaginatedPosts($dto));
     }
 
     public function store(StorePostRequest $request): JsonResponse
     {
         $post = $this->postService->createPost($request->validated(), $request->user());
+
         return response()->json((new PostResource($post))->resolve(), Response::HTTP_CREATED);
     }
 
     public function show(Post $post): JsonResponse
     {
         $post = $this->postService->getPostDetails($post);
+
         return response()->json((new PostResource($post))->resolve());
     }
 
@@ -48,6 +53,7 @@ class PostController extends Controller
     {
         $dto = $request->getDto();
         $posts = $this->postService->searchPosts($dto);
+
         return response()->json($posts);
     }
 

@@ -28,10 +28,10 @@ class DatabaseSeeder extends Seeder
 
         // User::factory(10)->create();
 
-//        User::factory()->create([
-//            'name' => 'Test User',
-//            'email' => 'test@example.com',
-//        ]);
+        //        User::factory()->create([
+        //            'name' => 'Test User',
+        //            'email' => 'test@example.com',
+        //        ]);
 
         $admin = User::factory()->create([
             'name' => 'Admin',
@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
         $authors = User::factory(200)->create();
 
         $editors->each(function (User $user) {
-            $publishedPosts = Post::factory(fake()->biasedNumberBetween(5, 10, fn($x) => 1 - sqrt($x)))
+            $publishedPosts = Post::factory(fake()->biasedNumberBetween(5, 10, fn ($x) => 1 - sqrt($x)))
                 ->published()
                 ->for($user, 'author')
                 ->create();
@@ -56,7 +56,7 @@ class DatabaseSeeder extends Seeder
                 ->create();
 
             $comments = $publishedPosts->flatMap(function (Post $post) use ($user) {
-                return Comment::factory(fake()->biasedNumberBetween(2, 10, fn($x) => 1 - sqrt($x)))
+                return Comment::factory(fake()->biasedNumberBetween(2, 10, fn ($x) => 1 - sqrt($x)))
                     ->for($post)
                     ->for($user, 'author')
                     ->make([
@@ -73,17 +73,17 @@ class DatabaseSeeder extends Seeder
 
         $authors->chunk(20)->each(function ($chunk) {
             $chunk->each(function (User $user) {
-                Post::factory(fake()->biasedNumberBetween(5, 10, fn($x) => 1 - sqrt($x)))
+                Post::factory(fake()->biasedNumberBetween(5, 10, fn ($x) => 1 - sqrt($x)))
                     ->for($user, 'author')
                     ->create();
 
-                $publishedPosts = Post::factory(fake()->biasedNumberBetween(5, 200, fn($x) => 1 - sqrt($x)))
+                $publishedPosts = Post::factory(fake()->biasedNumberBetween(5, 200, fn ($x) => 1 - sqrt($x)))
                     ->published()
                     ->for($user, 'author')
                     ->create();
 
                 $comments = $publishedPosts->flatMap(function (Post $post) use ($user) {
-                    return Comment::factory(fake()->biasedNumberBetween(0, 50, fn($x) => 1 - sqrt($x)))
+                    return Comment::factory(fake()->biasedNumberBetween(0, 50, fn ($x) => 1 - sqrt($x)))
                         ->for($post)
                         ->for($user, 'author')
                         ->make([

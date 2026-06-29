@@ -6,14 +6,15 @@ use App\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
-use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 class AuthControllerTest extends TestCase
 {
-    use RefreshDatabase, WithFaker;
+    use RefreshDatabase;
+    use WithFaker;
 
     public function test_user_can_register(): void
     {
@@ -36,7 +37,7 @@ class AuthControllerTest extends TestCase
     {
         $user = User::factory()->create([
             'email_verified_at' => null,
-            'password' => 'password'
+            'password' => 'password',
         ]);
 
         $this->postJson(route('auth.login'), [
@@ -70,8 +71,8 @@ class AuthControllerTest extends TestCase
         $this->assertNotNull($token);
 
         $this->withToken($token)
-                ->postJson(route('auth.logout'))
-                ->assertStatus(Response::HTTP_OK);
+            ->postJson(route('auth.logout'))
+            ->assertStatus(Response::HTTP_OK);
 
         auth()->guard('sanctum')->forgetUser();
 

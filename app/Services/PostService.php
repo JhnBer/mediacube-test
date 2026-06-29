@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\DTO\Post\IndexPostData;
 use App\DTO\Post\SearchPostData;
-use App\Enums\PostStatus;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Models\User;
@@ -19,6 +18,7 @@ class PostService
     public function disableCache(): self
     {
         $this->useCache = false;
+
         return $this;
     }
 
@@ -26,7 +26,7 @@ class PostService
     {
         $params = $data->toArray();
 
-        $key = 'posts:index:' . md5(serialize($params));
+        $key = 'posts:index:'.md5(serialize($params));
         $tags = ['posts', 'comments'];
 
         $fetcher = function () use ($data) {
@@ -50,7 +50,7 @@ class PostService
     {
         $params = $data->toArray();
         ksort($params);
-        $key = 'posts:search:' . md5(serialize($params));
+        $key = 'posts:search:'.md5(serialize($params));
         $tags = ['posts'];
 
         $fetcher = function () use ($data) {
@@ -61,11 +61,13 @@ class PostService
                 ->when($data->status, function ($query) use ($data) {
                     $query->status($data->status);
                 })
-                ->when($data->from, fn($query, $date) =>
-                    $query->where('published_at', '>=', $date)
+                ->when(
+                    $data->from,
+                    fn ($query, $date) => $query->where('published_at', '>=', $date)
                 )
-                ->when($data->to, fn($query, $date) =>
-                    $query->where('published_at', '<=', $date)
+                ->when(
+                    $data->to,
+                    fn ($query, $date) => $query->where('published_at', '<=', $date)
                 )
                 ->orderBy('published_at', 'desc')
                 ->get();
@@ -81,7 +83,7 @@ class PostService
      */
     protected function remember(string $key, array $tags, int $ttl, \Closure $callback)
     {
-        if (!$this->useCache) {
+        if (! $this->useCache) {
             return $callback();
         }
 
@@ -92,6 +94,7 @@ class PostService
     {
         try {
             $post = $user->posts()->create($data);
+
             return $post->load('author');
         } catch (UniqueConstraintViolationException $e) {
             $this->throwTitleException();
@@ -102,6 +105,7 @@ class PostService
     {
         try {
             $post->update($data);
+
             return $post;
         } catch (UniqueConstraintViolationException $e) {
             $this->throwTitleException();
@@ -125,7 +129,7 @@ class PostService
     private function throwTitleException(): void
     {
         throw ValidationException::withMessages([
-            'title' => ['Post with this title already exists.']
+            'title' => ['Post with this title already exists.'],
         ]);
     }
 }

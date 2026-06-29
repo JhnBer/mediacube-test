@@ -16,9 +16,9 @@ class StatsService
 
     public function getDateFromPeriod(string $period): CarbonInterface
     {
-        return match($period) {
-            'day'   => now()->subDay(),
-            'week'  => now()->subWeek(),
+        return match ($period) {
+            'day' => now()->subDay(),
+            'week' => now()->subWeek(),
             'month' => now()->subMonth(),
             default => throw new \InvalidArgumentException('Invalid period')
         };
@@ -29,7 +29,7 @@ class StatsService
         $from = $this->getDateFromPeriod($period);
 
         $params = ['period' => $period];
-        $key = 'stats:posts:' . md5(serialize($params));
+        $key = 'stats:posts:'.md5(serialize($params));
 
         $data = Cache::tags([...self::CACHE_TAGS, 'posts', 'comments'])->remember($key, 600, function () use ($from, $period) {
             $statusCounts = Post::selectRaw("
@@ -50,9 +50,9 @@ class StatsService
                 ->get();
 
             return [
-                'period'          => $period,
-                'status_counts'   => $statusCounts ? $statusCounts->toArray() : null,
-                'top_posts'       => $topPosts->toArray(),
+                'period' => $period,
+                'status_counts' => $statusCounts ? $statusCounts->toArray() : null,
+                'top_posts' => $topPosts->toArray(),
             ];
         });
 
@@ -64,35 +64,35 @@ class StatsService
         $from = $this->getDateFromPeriod($period);
 
         $params = ['period' => $period];
-        $key = 'stats:comments:' . md5(serialize($params));
+        $key = 'stats:comments:'.md5(serialize($params));
 
         $data = Cache::tags([...self::CACHE_TAGS, 'comments'])->remember($key, 600, function () use ($from, $period) {
-            $statusCounts = Comment::selectRaw("
+            $statusCounts = Comment::selectRaw('
                 COUNT(*) as count,
                 COUNT(*) FILTER (WHERE created_at >= ?) as created_in_period
-            ", [$from])->first();
+            ', [$from])->first();
 
             $activity = DB::table('comments')
                 ->where('created_at', '>=', $from)
-                ->selectRaw("
+                ->selectRaw('
                     EXTRACT(ISODOW FROM created_at) as day,
                     EXTRACT(HOUR FROM created_at) as hour,
                     COUNT(*) as count
-                ")
-                ->groupByRaw("
+                ')
+                ->groupByRaw('
                     EXTRACT(ISODOW FROM created_at),
                     EXTRACT(HOUR FROM created_at)
-                ")
-                ->orderByRaw("
+                ')
+                ->orderByRaw('
                     EXTRACT(ISODOW FROM created_at),
                     EXTRACT(HOUR FROM created_at)
-                ")
+                ')
                 ->get();
 
             return [
-                'period'          => $period,
-                'status_counts'   => $statusCounts ? $statusCounts->toArray() : null,
-                'activity'        => $activity->toArray(),
+                'period' => $period,
+                'status_counts' => $statusCounts ? $statusCounts->toArray() : null,
+                'activity' => $activity->toArray(),
             ];
         });
 
@@ -106,11 +106,11 @@ class StatsService
         $key = 'stats:users:all';
 
         $data = Cache::tags([...self::CACHE_TAGS, 'users', 'posts', 'comments'])->remember($key, 1200, function () {
-            $statusCounts = User::selectRaw("
+            $statusCounts = User::selectRaw('
                 COUNT(*) FILTER (WHERE role = :admin) as admins,
                 COUNT(*) FILTER (WHERE role = :editor) as editors,
                 COUNT(*) FILTER (WHERE role = :viewer) as viewers
-            ", [
+            ', [
                 'admin' => UserRole::ADMIN->value,
                 'editor' => UserRole::EDITOR->value,
                 'viewer' => UserRole::VIEWER->value,
@@ -133,9 +133,9 @@ class StatsService
                 ->get();
 
             return [
-                'status_counts'   => $statusCounts ? $statusCounts->toArray() : null,
-                'top_posters'     => $topPosters->toArray(),
-                'top_commenters'  => $topCommenters->toArray(),
+                'status_counts' => $statusCounts ? $statusCounts->toArray() : null,
+                'top_posters' => $topPosters->toArray(),
+                'top_commenters' => $topCommenters->toArray(),
             ];
         });
 
