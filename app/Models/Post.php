@@ -11,12 +11,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Cache;
 
 #[Fillable(['title', 'body', 'author_id', 'published_at', 'status'])]
 class Post extends Model
 {
     /** @use HasFactory<\Database\Factories\PostFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::saved(fn () => Cache::tags(['posts'])->flush());
+        static::deleted(fn () => Cache::tags(['posts'])->flush());
+    }
 
     protected function casts(): array
     {

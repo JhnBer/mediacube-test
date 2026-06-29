@@ -10,10 +10,10 @@ use App\Http\Requests\Post\UpdatePostRequest;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Database\QueryException;
 
 class PostController extends Controller
 {
@@ -26,18 +26,21 @@ class PostController extends Controller
         $direction = $request->input('direction', 'desc');
         $perPage = $request->input('per_page', 15);
 
-//        DB::statement('SET enable_seqscan = on');
+        $key = 'posts:index:' . md5(serialize($request->all()));
 
-        $posts = Post::with([
-            'author:id,name,email',
-            'lastComment' => fn ($q) => $q->select('comments.id', 'comments.body', 'comments.author_id', 'comments.post_id'),
-            'lastComment.author:id,name,email',
-        ])
-            ->select(['posts.id', 'posts.title', 'posts.author_id', 'posts.published_at', 'posts.status'])
-            ->withCount('comments')
-            ->orderBy($sort, $direction)
-//            ->explain();
-            ->paginate($perPage);
+        $posts = Cache::tags(['posts', 'comments'])
+            ->remember($key, 300, fn () =>
+                Post::with([
+                    'author:id,name,email',
+                    'lastComment' => fn ($q) => $q->select('comments.id', 'comments.body', 'comments.author_id', 'comments.post_id'),
+                    'lastComment.author:id,name,email',
+                ])
+                ->select(['posts.id', 'posts.title', 'posts.author_id', 'posts.published_at', 'posts.status'])
+                ->withCount('comments')
+                ->orderBy($sort, $direction)
+                ->paginate($perPage)
+                ->toArray()
+            );
 
 //        набросок для статистики
 //        $posts = Post::with([
@@ -113,22 +116,29 @@ class PostController extends Controller
     {
         $q = $request->input('q');
 
-        $posts = Post::query()
-            ->withAuthor()
-            ->select(['id', 'title', 'body', 'published_at', 'status', 'author_id'])
-            ->search($q)
-            ->when($request->enum('status', PostStatus::class), fn($q, $status) =>
-                $q->status($status)
-            )
-            ->when($request->input('published_at.from'), fn($q, $date) =>
-                $q->where('published_at', '>=', $date)
-            )
-            ->when($request->input('published_at.to'), fn($q, $date) =>
-                $q->where('published_at', '<=', $date)
-            )
-            ->orderBy('published_at', 'desc')
-//            ->explain();
-            ->get();
+        $params = $request->all();
+        ksort($params);
+        $key = 'posts:search:' . md5(serialize($params));
+
+        $posts = Cache::tags(['posts'])
+            ->remember($key, 300, fn () =>
+                Post::query()
+                    ->withAuthor()
+                    ->select(['id', 'title', 'body', 'published_at', 'status', 'author_id'])
+                    ->search($q)
+                    ->when($request->enum('status', PostStatus::class), fn($q, $status) =>
+                        $q->status($status)
+                    )
+                    ->when($request->input('published_at.from'), fn($q, $date) =>
+                        $q->where('published_at', '>=', $date)
+                    )
+                    ->when($request->input('published_at.to'), fn($q, $date) =>
+                        $q->where('published_at', '<=', $date)
+                    )
+                    ->orderBy('published_at', 'desc')
+                    ->get()
+                    ->toArray()
+            );
 
         return response()->json($posts);
     }
