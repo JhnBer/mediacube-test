@@ -107,9 +107,6 @@ class PostController extends Controller
     {
         $q = $request->input('q');
 
-//        DB::statement('SET enable_seqscan = on');
-//        DB::statement('SET enable_indexscan = on');
-
         $posts = Post::query()
             ->withAuthor()
             ->select(['id', 'title', 'body', 'published_at', 'status', 'author_id'])
@@ -124,8 +121,8 @@ class PostController extends Controller
                 $q->where('published_at', '<=', $date)
             )
             ->orderBy('published_at', 'desc')
-            ->explain();
-//            ->get();
+//            ->explain();
+            ->get();
 
         return response()->json($posts);
     }

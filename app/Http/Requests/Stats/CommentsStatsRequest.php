@@ -5,7 +5,7 @@ namespace App\Http\Requests\Stats;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class CommentsStatsReqeust extends FormRequest
+class CommentsStatsRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.

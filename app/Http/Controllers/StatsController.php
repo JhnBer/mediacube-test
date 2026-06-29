@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
-use App\Http\Requests\Stats\CommentsStatsReqeust;
+use App\Http\Requests\Stats\CommentsStatsRequest;
 use App\Http\Requests\Stats\PostsStatsRequest;
 use App\Http\Requests\Stats\UsersStatsRequest;
 use App\Models\Comment;
@@ -47,7 +47,7 @@ class StatsController extends Controller
         ]);
     }
 
-    public function comments(CommentsStatsReqeust $request): JsonResponse
+    public function comments(CommentsStatsRequest $request): JsonResponse
     {
         $period = $request->input('period', 'month');
 
