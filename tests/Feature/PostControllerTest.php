@@ -4,8 +4,6 @@ namespace Tests\Feature;
 
 use App\Enums\UserRole;
 use App\Http\Controllers\PostController;
-use App\Http\Requests\Post\StorePostRequest;
-use App\Http\Requests\Post\UpdatePostRequest;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -161,35 +159,36 @@ class PostControllerTest extends TestCase
         $this->assertDatabaseMissing('posts', ['id' => $post->id]);
     }
 
-    public function test_store_throws_validation_exception_when_unique_constraint_violated_after_validation(): void
+    public function test_race_condition_throws_validation_exception_on_store_and_update(): void
     {
-        // эмулирует ситуацию, если из-за гони request выдал ложно отрицательный результат
+        // эмулирует ситуацию, если из-за гонки валидатор выдал ложно отрицательный результат
         // на существование поста с уже имеющимся тайтлом
 
-        $user = User::factory()->create();
-        $otherUser = User::factory()->create();
-
         Post::factory()->create([
-            'title' => 'Race condition title',
-            'author_id' => $otherUser->id,
+            'title' => 'Race condition title (store)',
+            'author_id' => $this->viewer->id,
         ]);
 
-        $postData = [
-            'title' => 'Race condition title',
+        $postForUpdate = Post::factory()->create([
+            'title' => 'Race condition title (update)',
+            'author_id' => $this->author->id,
+        ]);
+
+        $postDataForStore = [
+            'title' => 'Race condition title (store)',
             'body' => 'Body text.',
         ];
 
-        $request = \Mockery::mock(StorePostRequest::class);
-        $request->shouldReceive('validated')
+        $storeRequest = \Mockery::mock(\App\Http\Requests\Post\StorePostRequest::class);
+        $storeRequest->shouldReceive('validated')
             ->once()
-            ->andReturn($postData);
-
-        $request->shouldReceive('user')
-            ->andReturn($user);
+            ->andReturn($postDataForStore);
+        $storeRequest->shouldReceive('user')
+            ->andReturn($this->author);
 
         try {
-            app(PostController::class)->store($request);
-            $this->fail('Expected ValidationException was not thrown.');
+            app(PostController::class)->store($storeRequest);
+            $this->fail('Expected ValidationException was not thrown for store.');
         } catch (ValidationException $e) {
             $this->assertSame(
                 ['Post with this title already exists.'],
@@ -197,37 +196,21 @@ class PostControllerTest extends TestCase
             );
         }
 
-        $this->assertDatabaseCount('posts', 1);
-        $this->assertDatabaseMissing('posts', [
-            'title' => $postData['title'],
-            'author_id' => $user->id,
-        ]);
-    }
+        Sanctum::actingAs($this->author);
+        $updateRequest = \Mockery::mock(\App\Http\Requests\Post\UpdatePostRequest::class);
+        $updateRequest->shouldReceive('validated')
+            ->once()
+            ->andReturn([
+                'title' => $postDataForStore['title'],
+            ]);
 
-    public function test_update_throws_validation_exception_when_unique_constraint_violated_after_validation(): void
-    {
-        $user = User::factory()->create();
+        $updateRequest->shouldReceive('user')
+            ->andReturn($this->author);
 
-        $this->actingAs($user);
-
-        Post::factory()->create([
-            'title' => 'Existing title',
-            'author_id' => $user->id,
-        ]);
-
-        $post = Post::factory()->create([
-            'title' => 'Another title',
-            'author_id' => $user->id,
-        ]);
-
-        $request = \Mockery::mock(UpdatePostRequest::class);
-        $request->shouldReceive('validated')->once()->andReturn([
-            'title' => 'Existing title',
-        ]);
 
         try {
-            app(PostController::class)->update($request, $post);
-            $this->fail('Expected ValidationException was not thrown.');
+            app(PostController::class)->update($updateRequest, $postForUpdate);
+            $this->fail('Expected ValidationException was not thrown for update.');
         } catch (ValidationException $e) {
             $this->assertSame(
                 ['Post with this title already exists.'],
@@ -235,9 +218,8 @@ class PostControllerTest extends TestCase
             );
         }
 
-        $this->assertDatabaseHas('posts', [
-            'id' => $post->id,
-            'title' => 'Another title',
-        ]);
+        $this->assertSame(1, Post::where('title', $postDataForStore['title'])->count());
+
+        \Mockery::close();
     }
 }
