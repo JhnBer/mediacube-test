@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Post;
 
-use App\Enums\Enum\PostStatus;
+use App\Enums\PostStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;

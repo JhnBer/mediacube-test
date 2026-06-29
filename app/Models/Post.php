@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\Enum\PostStatus;
+use App\Enums\PostStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;

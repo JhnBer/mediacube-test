@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Enum\PostStatus;
+use App\Enums\PostStatus;
 use App\Http\Requests\Post\IndexPostRequest;
 use App\Http\Requests\Post\SearchPostRequest;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
 use App\Models\Post;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Database\UniqueConstraintViolationException;
 
 class PostController extends Controller
 {
