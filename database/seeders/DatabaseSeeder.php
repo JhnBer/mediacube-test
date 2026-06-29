@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $maxPostPerUser = 20;
+
         Artisan::call('migrate:rollback', [
             '--path' => 'database/migrations/indexes',
             '--force' => true,
@@ -71,13 +73,13 @@ class DatabaseSeeder extends Seeder
             }
         });
 
-        $authors->chunk(20)->each(function ($chunk) {
-            $chunk->each(function (User $user) {
+        $authors->chunk(20)->each(function ($chunk) use ($maxPostPerUser) {
+            $chunk->each(function (User $user) use ($maxPostPerUser) {
                 Post::factory(fake()->biasedNumberBetween(5, 10, fn ($x) => 1 - sqrt($x)))
                     ->for($user, 'author')
                     ->create();
 
-                $publishedPosts = Post::factory(fake()->biasedNumberBetween(5, 200, fn ($x) => 1 - sqrt($x)))
+                $publishedPosts = Post::factory(fake()->biasedNumberBetween(5, $maxPostPerUser, fn ($x) => 1 - sqrt($x)))
                     ->published()
                     ->for($user, 'author')
                     ->create();

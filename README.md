@@ -13,25 +13,18 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Зависимости
+Запустить файлик для запуска
 ```shell
-docker exec -it app composer i
+docker compose exec -it app ./run.sh
 ```
 
-Миграции
-```shell
-docker exec -it app php artisan migrate
-```
+`
+Для тестов локально использовал $maxPostPerUser = 200 в сидере (сейчас 20).
+Работает долго, по итогу может быть до 700к комментов, и 20к+ постов.
+Тестил индексы либо так, либо с SET enable_seqscan = off;
+`
 
-Сид бд (около 3х минут)
-```shell
-docker exec -it app php artisan db:seed
-```
-
-Тесты
-```shell
-docker exec -it app php artisan test
-```
+Получить 
 
 ## Структура
 
@@ -89,5 +82,29 @@ docker exec -it app php artisan test
 
 ### Функциональные
 
-Взял 13 лару, чтобы поюзать чуть-чуть атрибуты для управления) 
+Взял 13 лару, чтобы поюзать чуть-чуть атрибуты для управления).
+Поднимать proxy сервер тоже показалось избыточным. Гонял через postman.
 
+###
+Команды отдельно чё-то погонять
+
+
+Зависимости
+```shell
+docker compose exec -it app composer i
+```
+
+Миграции
+```shell
+docker compose exec -it app php artisan migrate
+```
+
+Сид бд
+```shell
+docker compose exec -it app php artisan db:seed
+```
+
+Тесты
+```shell
+docker compose exec -it app php artisan test
+```
