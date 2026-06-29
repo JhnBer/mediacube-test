@@ -21,7 +21,7 @@ class AuthControllerTest extends TestCase
 
         $this->postJson(route('auth.register'), [
             'email' => $this->faker()->email(),
-            'password' => $this->faker()->password(),
+            'password' => $this->faker()->password(8),
             'name' => $this->faker()->name(),
         ])
             ->assertStatus(Response::HTTP_CREATED); // user registered
