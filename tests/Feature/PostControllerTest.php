@@ -54,7 +54,7 @@ class PostControllerTest extends TestCase
         $this->postJson(route('posts.store'), $postData)
             ->assertCreated()
             ->assertJsonPath('title', 'My first post title')
-            ->assertJsonPath('author_id', $this->viewer->id);
+            ->assertJsonPath('author.id', $this->viewer->id);
 
         $this->assertDatabaseHas('posts', [
             'title' => 'My first post title',

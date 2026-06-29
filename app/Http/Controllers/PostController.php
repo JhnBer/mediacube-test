@@ -7,6 +7,7 @@ use App\Http\Requests\Post\IndexPostRequest;
 use App\Http\Requests\Post\SearchPostRequest;
 use App\Http\Requests\Post\StorePostRequest;
 use App\Http\Requests\Post\UpdatePostRequest;
+use App\Http\Resources\PostResource;
 use App\Models\Post;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
@@ -29,37 +30,21 @@ class PostController extends Controller
         $key = 'posts:index:' . md5(serialize($request->all()));
 
         $posts = Cache::tags(['posts', 'comments'])
-            ->remember($key, 300, fn () =>
-                Post::with([
+            ->remember($key, 300, function () use ($sort, $direction, $perPage) {
+                $paginator = Post::with([
                     'author:id,name,email',
                     'lastComment' => fn ($q) => $q->select('comments.id', 'comments.body', 'comments.author_id', 'comments.post_id'),
                     'lastComment.author:id,name,email',
                 ])
-                ->select(['posts.id', 'posts.title', 'posts.author_id', 'posts.published_at', 'posts.status'])
-                ->withCount('comments')
-                ->orderBy($sort, $direction)
-                ->paginate($perPage)
-                ->toArray()
-            );
+                    ->select(['posts.id', 'posts.title', 'posts.body', 'posts.author_id', 'posts.published_at', 'posts.status'])
+                    ->withCount('comments')
+                    ->orderBy($sort, $direction)
+                    ->paginate($perPage);
 
-//        набросок для статистики
-//        $posts = Post::with([
-//            'author:id,name,email',
-//            'lastComment' => fn ($q) => $q->select('comments.id', 'comments.body', 'comments.author_id', 'comments.post_id'),
-//            'lastComment.author:id,name,email',
-//        ])
-//            ->select(['posts.id', 'posts.author_id', 'posts.title', 'posts.published_at', 'posts.status', 'comments_count.comments_count'])
-//            ->leftJoinSub(
-//                DB::table('comments')
-//                    ->selectRaw('post_id, COUNT(*) as comments_count')
-//                    ->groupBy('post_id'),
-//                'comments_count',
-//                'comments_count.post_id',
-//                '=',
-//                'posts.id'
-//            )
-//            ->orderBy($sort, $direction)
-//            ->paginate($perPage);
+            return PostResource::collection($paginator)
+                ->response()
+                ->getData();
+        });
 
         return response()->json($posts);
     }
@@ -71,8 +56,9 @@ class PostController extends Controller
     {
         try {
             $post = $request->user()->posts()->create($request->validated());
+            $post->load('author');
 
-            return response()->json($post, 201);
+            return response()->json(new PostResource($post), 201);
         } catch (UniqueConstraintViolationException $e) {
             throw ValidationException::withMessages([
                 'title' => ['Post with this title already exists.']
@@ -91,7 +77,7 @@ class PostController extends Controller
             'lastComment.author:id,name,email',
         ])->loadCount('comments');
 
-        return response()->json($post);
+        return response()->json(new PostResource($post));
     }
 
     /**
@@ -104,7 +90,7 @@ class PostController extends Controller
         try {
             $post->update($request->validated());
 
-            return response()->json($post);
+            return response()->json(new PostResource($post));
         } catch (UniqueConstraintViolationException $e) {
             throw ValidationException::withMessages([
                 'title' => ['Post with this title already exists.']
@@ -137,10 +123,9 @@ class PostController extends Controller
                     )
                     ->orderBy('published_at', 'desc')
                     ->get()
-                    ->toArray()
             );
 
-        return response()->json($posts);
+        return response()->json(PostResource::collection($posts));
     }
 
     /**
