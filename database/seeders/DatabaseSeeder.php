@@ -35,11 +35,15 @@ class DatabaseSeeder extends Seeder
         //            'email' => 'test@example.com',
         //        ]);
 
-        $admin = User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'role' => UserRole::ADMIN,
-        ]);
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin',
+                'role' => UserRole::ADMIN,
+                'email_verified_at' => now(),
+                'password' => 'password',
+            ]
+        );
 
         $editors = User::factory(10)->create([
             'role' => UserRole::EDITOR,

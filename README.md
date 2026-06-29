@@ -13,7 +13,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-Запустить файлик для запуска
+Запустить файлик для запуска (сидинг идёт около минуты +-)
 ```shell
 docker compose exec -it app ./run.sh
 ```
