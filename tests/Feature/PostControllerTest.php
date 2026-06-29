@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Http\Controllers\PostController;
 use App\Models\Post;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Validation\ValidationException;
@@ -221,5 +222,140 @@ class PostControllerTest extends TestCase
         $this->assertSame(1, Post::where('title', $postDataForStore['title'])->count());
 
         \Mockery::close();
+    }
+
+    public function test_search_returns_posts_matching_title(): void
+    {
+        Post::factory()->published()->create(['title' => 'Laravel for beginners guide']);
+        Post::factory()->published()->create(['title' => 'Advanced Laravel techniques']);
+        Post::factory()->create(['title' => 'PHP for experts']);
+
+        $response = $this->getJson('/api/posts/search?q=Laravel')
+            ->assertOk()
+            ->assertJsonCount(2);
+
+        $titles = collect($response->json())->pluck('title');
+        $this->assertContains('Laravel for beginners guide', $titles);
+        $this->assertContains('Advanced Laravel techniques', $titles);
+    }
+
+    public function test_search_returns_posts_matching_body(): void
+    {
+        Post::factory()->create([
+            'title' => 'First post',
+            'body' => 'This article is about PostgreSQL performance tuning',
+        ]);
+        Post::factory()->create([
+            'title' => 'Second post',
+            'body' => 'Just a random text without the keyword',
+        ]);
+
+        $this->getJson('/api/posts/search?q=PostgreSQL')
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.title', 'First post');
+    }
+
+    public function test_search_is_case_insensitive(): void
+    {
+        Post::factory()->create(['title' => 'Welcome to the Blog']);
+
+        $this->getJson('/api/posts/search?q=welcome')
+            ->assertOk()
+            ->assertJsonCount(1);
+
+        $this->getJson('/api/posts/search?q=BLOG')
+            ->assertOk()
+            ->assertJsonCount(1);
+
+        $this->getJson('/api/posts/search?q=WELCOME+TO+THE')
+            ->assertOk()
+            ->assertJsonCount(1);
+    }
+
+    public function test_search_filters_by_status(): void
+    {
+        Post::factory()->published()->create([
+            'title' => 'Published article',
+        ]);
+        Post::factory()->create([
+            'title' => 'Draft article',
+        ]);
+
+        $this->getJson('/api/posts/search?q=article&status=published')
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.title', 'Published article');
+
+        $this->getJson('/api/posts/search?q=article&status=draft')
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.title', 'Draft article');
+    }
+
+    public function test_search_filters_by_date_range(): void
+    {
+        Carbon::setTestNow('2026-06-01');
+
+        Post::factory()->create([
+            'title' => 'Old post',
+            'published_at' => '2026-05-01',
+        ]);
+
+        Carbon::setTestNow('2026-06-15');
+
+        Post::factory()->create([
+            'title' => 'Middle post',
+            'published_at' => '2026-06-10',
+        ]);
+
+        Post::factory()->create([
+            'title' => 'Recent post',
+            'published_at' => '2026-06-20',
+        ]);
+
+        Carbon::setTestNow();
+
+        $response = $this->getJson('/api/posts/search?q=post&published_at[from]=2026-06-01&published_at[to]=2026-06-15')
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.title', 'Middle post');
+    }
+
+    public function test_search_returns_empty_when_no_match(): void
+    {
+        Post::factory()->create(['title' => 'Unique title']);
+
+        $this->getJson('/api/posts/search?q=nonexistent')
+            ->assertOk()
+            ->assertJsonCount(0);
+    }
+
+    public function test_search_returns_author_with_each_post(): void
+    {
+        $author = User::factory()->create(['name' => 'John Doe', 'email' => 'john@example.com']);
+        Post::factory()->for($author, 'author')->create([
+            'title' => 'Post by John',
+        ]);
+
+        $this->getJson('/api/posts/search?q=John')
+            ->assertOk()
+            ->assertJsonCount(1)
+            ->assertJsonPath('0.author.name', 'John Doe')
+            ->assertJsonPath('0.author.email', 'john@example.com');
+    }
+
+    public function test_search_validates_min_query_length(): void
+    {
+        $this->getJson('/api/posts/search?q=ab')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('q');
+    }
+
+    public function test_search_validates_status_enum(): void
+    {
+        $this->getJson('/api/posts/search?q=test&status=invalid_status')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('status');
     }
 }

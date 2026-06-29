@@ -64,7 +64,7 @@ class Post extends Model
     public static function search(Builder $query, string $q): void
     {
         $query->whereRaw(
-            "(lower(title || ' ' || body)) ILIKE ?",
+            "(lower(title || ' ' || body)) LIKE ?",
             ["%" . str($q)->lower()->toString() . "%"]
         );
     }

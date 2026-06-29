@@ -12,7 +12,7 @@ Route::get('email/verify/{id}/{hash}', \App\Http\Controllers\VerifyEmailControll
     ->middleware(['signed'])
     ->name('verification.verify');
 
-Route::middleware('throttle:10,1')->group(function () {
+Route::middleware('throttle:100,1')->group(function () {
     Route::get('posts/search', [\App\Http\Controllers\PostController::class, 'search']);
 
     Route::apiResources([

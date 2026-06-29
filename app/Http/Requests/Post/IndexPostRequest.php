@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Post;
 
+use App\DTO\Post\IndexPostData;
 use Illuminate\Foundation\Http\FormRequest;
 
 class IndexPostRequest extends FormRequest
@@ -18,5 +19,10 @@ class IndexPostRequest extends FormRequest
             'sort' => ['sometimes', 'string', 'in:published_at,title,created_at'],
             'direction' => ['sometimes', 'string', 'in:asc,desc'],
         ];
+    }
+
+    public function getDto(): IndexPostData
+    {
+        return IndexPostData::from($this->validated());
     }
 }
