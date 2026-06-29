@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('body');
             $table->foreignId('author_id')->constrained('users')->cascadeOnDelete();
             $table->timestamp('published_at')->nullable();
-            $table->string('status')->default(\App\Enums\Enumb\PostStatus::DRAFT);
+            $table->string('status')->default(\App\Enums\Enum\PostStatus::DRAFT);
             $table->timestamps();
         });
     }

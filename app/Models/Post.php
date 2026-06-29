@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
-use App\Enums\Enumb\PostStatus;
+use App\Enums\Enum\PostStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Scope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[Fillable(['title', 'body', 'author_id', 'published_at', 'status'])]
 class Post extends Model
@@ -31,5 +34,31 @@ class Post extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    public function lastComment(): HasOne
+    {
+        return $this->hasOne(Comment::class)->latestOfMany();
+    }
+
+    #[Scope]
+    protected function withAuthor(Builder $query): void
+    {
+        $query->with('author:id,name,email');
+    }
+
+    #[Scope]
+    protected function status(Builder $query, PostStatus $status): void
+    {
+        $query->where('status', $status);
+    }
+
+    #[Scope]
+    public static function search(Builder $query, string $q): void
+    {
+        $query->whereRaw(
+            "(lower(title || ' ' || body)) ILIKE ?",
+            ["%" . str($q)->lower()->toString() . "%"]
+        );
     }
 }

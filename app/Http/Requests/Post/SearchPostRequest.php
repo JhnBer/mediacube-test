@@ -2,11 +2,12 @@
 
 namespace App\Http\Requests\Post;
 
+use App\Enums\Enum\PostStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StorePostRequest extends FormRequest
+class SearchPostRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -24,9 +25,10 @@ class StorePostRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => ['required', 'string', 'min:2', 'max:255', 'unique:posts,title'],
-            'body' => ['required', 'string'],
-            'status' => ['sometimes', 'string', Rule::enum(\App\Enums\Enum\PostStatus::class)],
+            'q' => 'required|string|min:3',
+            'status'             => ['sometimes', 'string', Rule::enum(PostStatus::class)],
+            'published_at.from'  => 'sometimes|date',
+            'published_at.to'    => 'sometimes|date|after_or_equal:published_at.from',
         ];
     }
 }

@@ -23,6 +23,8 @@ class CommentFactory extends Factory
             'body' => $this->faker->paragraph(10),
             'author_id' => User::factory(),
             'post_id' => Post::factory(),
+            'created_at' => fake()->dateTimeBetween('-2 years', 'now'),
+            'updated_at' => fn (array $attrs) => $attrs['created_at'],
         ];
     }
 }

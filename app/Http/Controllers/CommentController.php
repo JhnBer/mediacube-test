@@ -6,7 +6,9 @@ use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Models\Comment;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Gate;
 
 class CommentController extends Controller
@@ -14,7 +16,7 @@ class CommentController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
         $comments = Comment::when($request->has('post_id'), function ($query) use ($request) {
             return $query->where('post_id', $request->post_id);
@@ -24,17 +26,9 @@ class CommentController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        // Not used in API context, but we keep the stub if needed.
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreCommentRequest $request)
+    public function store(StoreCommentRequest $request): JsonResponse
     {
         $comment = $request->user()->comments()->create($request->validated());
 
@@ -44,23 +38,15 @@ class CommentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Comment $comment)
+    public function show(Comment $comment): JsonResponse
     {
         return response()->json($comment);
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Comment $comment)
-    {
-        // Not used in API context, but we keep the stub.
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateCommentRequest $request, Comment $comment)
+    public function update(UpdateCommentRequest $request, Comment $comment): JsonResponse
     {
         Gate::authorize('update', $comment);
 
@@ -72,7 +58,7 @@ class CommentController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Comment $comment)
+    public function destroy(Comment $comment): Response
     {
         Gate::authorize('delete', $comment);
 
