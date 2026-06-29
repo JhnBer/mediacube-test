@@ -70,7 +70,7 @@ class PostService
                 ->orderBy('published_at', 'desc')
                 ->get();
 
-            return PostResource::collection($posts)->resolve();
+            return PostResource::collection($posts)->response()->getData(true);
         };
 
         return $this->remember($key, $tags, 300, $fetcher);
