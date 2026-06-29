@@ -234,7 +234,7 @@ class PostControllerTest extends TestCase
         Post::factory()->published()->create(['title' => 'Advanced Laravel techniques']);
         Post::factory()->create(['title' => 'PHP for experts']);
 
-        $response = $this->getJson('/api/posts/search?q=Laravel')
+        $response = $this->getJson(route('posts.search', ['q' => 'Laravel']))
             ->assertOk()
             ->assertJsonCount(2, 'data');
 
@@ -254,7 +254,7 @@ class PostControllerTest extends TestCase
             'body' => 'Just a random text without the keyword',
         ]);
 
-        $this->getJson('/api/posts/search?q=PostgreSQL')
+        $this->getJson(route('posts.search', ['q' => 'PostgreSQL']))
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.title', 'First post');
@@ -264,15 +264,15 @@ class PostControllerTest extends TestCase
     {
         Post::factory()->create(['title' => 'Welcome to the Blog']);
 
-        $this->getJson('/api/posts/search?q=welcome')
+        $this->getJson(route('posts.search', ['q' => 'welcome']))
             ->assertOk()
             ->assertJsonCount(1, 'data');
 
-        $this->getJson('/api/posts/search?q=BLOG')
+        $this->getJson(route('posts.search', ['q' => 'BLOG']))
             ->assertOk()
             ->assertJsonCount(1, 'data');
 
-        $this->getJson('/api/posts/search?q=WELCOME+TO+THE')
+        $this->getJson(route('posts.search', ['q' => 'WELCOME TO THE']))
             ->assertOk()
             ->assertJsonCount(1);
     }
@@ -286,12 +286,12 @@ class PostControllerTest extends TestCase
             'title' => 'Draft article',
         ]);
 
-        $this->getJson('/api/posts/search?q=article&status=published')
+        $this->getJson(route('posts.search', ['q' => 'article', 'status' => 'published']))
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.title', 'Published article');
 
-        $this->getJson('/api/posts/search?q=article&status=draft')
+        $this->getJson(route('posts.search', ['q' => 'article', 'status' => 'draft']))
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.title', 'Draft article');
@@ -320,7 +320,7 @@ class PostControllerTest extends TestCase
 
         Carbon::setTestNow();
 
-        $response = $this->getJson('/api/posts/search?q=post&published_at[from]=2026-06-01&published_at[to]=2026-06-15')
+        $response = $this->getJson(route('posts.search', ['q' => 'post', 'published_at' => ['from' => '2026-06-01', 'to' => '2026-06-15']]))
             ->assertOk()
             ->assertJsonCount(1)
             ->assertJsonPath('data.0.title', 'Middle post');
@@ -330,7 +330,7 @@ class PostControllerTest extends TestCase
     {
         Post::factory()->create(['title' => 'Unique title']);
 
-        $this->getJson('/api/posts/search?q=nonexistent')
+        $this->getJson(route('posts.search', ['q' => 'nonexistent']))
             ->assertOk()
             ->assertJsonCount(0, 'data');
     }
@@ -342,7 +342,7 @@ class PostControllerTest extends TestCase
             'title' => 'Post by John',
         ]);
 
-        $this->getJson('/api/posts/search?q=John')
+        $this->getJson(route('posts.search', ['q' => 'John']))
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.author.name', 'John Doe')
@@ -351,14 +351,14 @@ class PostControllerTest extends TestCase
 
     public function test_search_validates_min_query_length(): void
     {
-        $this->getJson('/api/posts/search?q=ab')
+        $this->getJson(route('posts.search', ['q' => 'ab']))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('q');
     }
 
     public function test_search_validates_status_enum(): void
     {
-        $this->getJson('/api/posts/search?q=test&status=invalid_status')
+        $this->getJson(route('posts.search', ['q' => 'test', 'status' => 'invalid_status']))
             ->assertUnprocessable()
             ->assertJsonValidationErrors('status');
     }

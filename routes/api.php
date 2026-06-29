@@ -19,7 +19,7 @@ Route::get('email/verify/{id}/{hash}', VerifyEmailController::class)
     ->name('verification.verify');
 
 Route::middleware('throttle:100,1')->group(function () {
-    Route::get('posts/search', [PostController::class, 'search']);
+    Route::get('posts/search', [PostController::class, 'search'])->name('posts.search');
 
     Route::apiResources([
         'posts' => PostController::class,
