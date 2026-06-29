@@ -18,9 +18,14 @@ class CommentController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $comments = Comment::when($request->has('post_id'), function ($query) use ($request) {
-            return $query->where('post_id', $request->post_id);
-        })->latest()->get();
+        $perPage = $request->input('per_page', 15);
+
+        $comments = Comment::with('author:id,name,email')
+            ->when($request->has('post_id'), function ($query) use ($request) {
+                return $query->where('post_id', $request->post_id);
+            })
+            ->latest()
+            ->paginate($perPage);
 
         return response()->json($comments);
     }

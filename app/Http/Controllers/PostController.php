@@ -82,6 +82,12 @@ class PostController extends Controller
      */
     public function show(Post $post): JsonResponse
     {
+        $post->load([
+            'author:id,name,email',
+            'lastComment' => fn ($q) => $q->select('comments.id', 'comments.body', 'comments.author_id', 'comments.post_id'),
+            'lastComment.author:id,name,email',
+        ])->loadCount('comments');
+
         return response()->json($post);
     }
 

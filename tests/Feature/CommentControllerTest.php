@@ -44,7 +44,7 @@ class CommentControllerTest extends TestCase
 
         $this->getJson(route('comments.index', ['post_id' => $post->id]))
             ->assertOk()
-            ->assertJsonCount(1);
+            ->assertJsonCount(1, 'data');
 
         $this->getJson(route('comments.show', $commentId))
             ->assertOk()
