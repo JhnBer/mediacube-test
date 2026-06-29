@@ -35,7 +35,7 @@ class PostControllerTest extends TestCase
 
         $this->getJson(route('posts.index'))
             ->assertOk()
-            ->assertJsonCount(3);
+            ->assertJsonCount(3, 'data');
 
         $this->getJson(route('posts.show', $posts[0]->id))
             ->assertOk()
