@@ -22,6 +22,12 @@ Route::apiResources([
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('posts', \App\Http\Controllers\PostController::class)->except(['index', 'show']);
     Route::apiResource('comments', \App\Http\Controllers\CommentController::class)->except(['index', 'show']);
+
+    Route::prefix('stats')->as('stats.')->withoutMiddleware('auth:sanctum')->group(function () {
+       Route::get('posts', [\App\Http\Controllers\StatsController::class, 'posts'])->name('posts');
+       Route::get('comments', [\App\Http\Controllers\StatsController::class, 'comments'])->name('comments');
+       Route::get('users', [\App\Http\Controllers\StatsController::class, 'users'])->name('users');
+    });
 });
 
 Route::prefix('meta')->as('meta.')->group(function () {
