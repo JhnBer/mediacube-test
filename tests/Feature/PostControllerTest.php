@@ -191,6 +191,8 @@ class PostControllerTest extends TestCase
         $storeRequest->shouldReceive('user')
             ->andReturn($this->author);
 
+        Sanctum::actingAs($this->author);
+
         try {
             app(PostController::class)->store($storeRequest);
             $this->fail('Expected ValidationException was not thrown for store.');
@@ -201,7 +203,6 @@ class PostControllerTest extends TestCase
             );
         }
 
-        Sanctum::actingAs($this->author);
         $updateRequest = \Mockery::mock(UpdatePostRequest::class);
         $updateRequest->shouldReceive('validated')
             ->once()

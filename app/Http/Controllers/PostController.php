@@ -28,6 +28,8 @@ class PostController extends Controller
 
     public function store(StorePostRequest $request): JsonResponse
     {
+        Gate::authorize('create', Post::class);
+
         $post = $this->postService->createPost($request->validated(), $request->user());
 
         return response()->json((new PostResource($post))->resolve(), Response::HTTP_CREATED);

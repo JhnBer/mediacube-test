@@ -31,7 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('posts', PostController::class)->except(['index', 'show']);
     Route::apiResource('comments', CommentController::class)->except(['index', 'show']);
 
-    Route::prefix('stats')->as('stats.')->withoutMiddleware('auth:sanctum')->group(function () {
+    Route::prefix('stats')->as('stats.')->group(function () {
         Route::get('posts', [StatsController::class, 'posts'])->name('posts');
         Route::get('comments', [StatsController::class, 'comments'])->name('comments');
         Route::get('users', [StatsController::class, 'users'])->name('users');
