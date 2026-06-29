@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
        Route::get('posts', [\App\Http\Controllers\StatsController::class, 'posts'])->name('posts');
        Route::get('comments', [\App\Http\Controllers\StatsController::class, 'comments'])->name('comments');
        Route::get('users', [\App\Http\Controllers\StatsController::class, 'users'])->name('users');
+       Route::post('clear-cache', [\App\Http\Controllers\StatsController::class, 'clearCache'])->name('clear-cache');
     });
 });
 
